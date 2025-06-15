@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jeux de rôle – La Guilde</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <nav class="menu">
+    <div class="logo">
+        <a href="index.html">
+          <img src="laguilde_logo-blason.png" alt="Logo du club">
+        </a>
+    </div>
+        <ul>
+            <li>
+                <a href='#'>JDR </a>
+                <ul class="submenu">
+                    <li><a href="#">Calendrier</a></li>
+                    <li><a href="#">Création d’un nouveau JDR</a></li>
+                    <li><a href="#">Rejoindre un JDR</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href='#'>Les jeux </a>
+                <ul class="submenu">
+                    <li><a href="#">Présentation</a></li>
+                    <li><a href="#">Suggestion</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href='#'>Les evenements </a>
+                <ul class="submenu">
+                    <li><a href="#">annonces</a></li>
+                    <li><a href="#">Calendrier</a></li>
+                    <li><a href="#">Suggestion</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href='#'>Documentation </a>
+                <ul class="submenu">
+                    <li><a href="#">Trombinoscope</a></li>
+                    <li><a href="#">Heures</a></li>
+                    <li><a href="#">Autres documents</a></li>
+                </ul>
+            </li>
+        </ul>
+  </nav>
+
+  <main class="page-contenu">
+    <h1>Jeux de rôle</h1>
+
+    <!-- 📅 Calendrier interactif -->
+    <section class="jdr-section">
+      <h2>Calendrier des parties</h2>
+      <iframe
+        src="https://calendar.google.com/calendar/embed?src=cd0b2aab8a78425697bdc7fecee05ab8cd15726cfc341071067d5eb999dac496%40group.calendar.google.com&ctz=Europe%2FParis"
+        style="border: 0"
+        width="100%"
+        height="600"
+        frameborder="0"
+        scrolling="no">
+      </iframe>
+    </section>
+    <p class="calendar-link">
+      <a href="https://calendar.google.com/calendar/u/0/r" target="_blank">Programmer votre JDR</a>
+    </p>
+
+    <div id="jdrList" class="jdr-liste"> </div><!-- Les blocs créés s'afficheront ici -->
+
+<section class="jdr-creation">
+  <h2>Créer un JDR</h2>
+  <form id="jdrForm">
+    <input type="text" id="titre" placeholder="Nom du JDR" required>
+    <input type="text" id="mj" placeholder="Nom du MJ" required>
+    <input type="text" id="horaire" placeholder="Jour et heure" required>
+    <input type="number" id="joueurs" placeholder="Nombre de joueurs" required>
+    <textarea id="description" placeholder="Description" rows="4" required></textarea>
+    <button type="submit">Créer</button>
+  </form>
+
+  
+    
+  </div>
+</section>
+  </main>
+
+  <footer>
+    <!-- ton footer -->
+  </footer>
+  <script>
+  const form = document.getElementById('jdrForm');
+  const list = document.getElementById('jdrList');
+
+  // 🔁 Charger les JDR enregistrés au démarrage
+  window.addEventListener('DOMContentLoaded', () => {
+    const saved = JSON.parse(localStorage.getItem('jdrList')) || [];
+    saved.forEach(jdr => addBloc(jdr));
+  });
+
+  // ✅ Fonction pour ajouter un bloc HTML
+  function addBloc({ titre, mj, horaire, joueurs, description, inscrits = [] }, index) {
+  const bloc = document.createElement('div');
+  bloc.classList.add('bloc-jdr');
+
+  // Contenu de base
+  bloc.innerHTML = `
+  <h3>${titre}</h3>
+  <div class="ligne-jdr"><strong>MJ :</strong> ${mj}</div>
+  <div class="ligne-jdr"><strong>Quand :</strong> ${horaire}</div>
+  <div class="ligne-jdr"><strong>Joueurs :</strong> ${joueurs}</div>
+  <div class="ligne-jdr description">${description}</div>
+  <div class="inscrits"><strong>👤 Joueurs inscrits :</strong><ul></ul></div>
+  <input type="text" placeholder="Votre nom" class="input-nom" />
+  <button class="rejoindre-btn">Rejoindre</button>
+  <button class="supprimer-btn">🗑️ Supprimer</button>
+`;
+
+  const listJoueurs = bloc.querySelector('.inscrits ul');
+  const inputNom = bloc.querySelector('.input-nom');
+
+  // Afficher les joueurs déjà enregistrés
+  inscrits.forEach(nom => {
+    const li = document.createElement('li');
+    li.textContent = nom;
+    listJoueurs.appendChild(li);
+  });
+
+  // Ajouter un joueur
+  bloc.querySelector('.rejoindre-btn').addEventListener('click', () => {
+    const nom = inputNom.value.trim();
+    if (nom === '') return;
+
+    const li = document.createElement('li');
+    li.textContent = nom;
+    listJoueurs.appendChild(li);
+    inputNom.value = '';
+
+    // 🔄 Mettre à jour le localStorage
+    const saved = JSON.parse(localStorage.getItem('jdrList')) || [];
+    if (!saved[index].inscrits) saved[index].inscrits = [];
+    saved[index].inscrits.push(nom);
+    localStorage.setItem('jdrList', JSON.stringify(saved));
+  });
+
+  // Supprimer un bloc
+  bloc.querySelector('.supprimer-btn').addEventListener('click', () => {
+    bloc.remove();
+    const saved = JSON.parse(localStorage.getItem('jdrList')) || [];
+    saved.splice(index, 1);
+    localStorage.setItem('jdrList', JSON.stringify(saved));
+  });
+
+  list.appendChild(bloc);
+}
+
+  // 📝 Quand on envoie le formulaire
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const jdr = {
+      titre: document.getElementById('titre').value,
+      mj: document.getElementById('mj').value,
+      horaire: document.getElementById('horaire').value,
+      joueurs: document.getElementById('joueurs').value,
+      description: document.getElementById('description').value
+    };
+
+    // 👉 Ajouter le bloc visuellement
+    addBloc(jdr);
+
+    // 💾 Enregistrer dans localStorage
+    const saved = JSON.parse(localStorage.getItem('jdrList')) || [];
+    saved.push(jdr);
+    localStorage.setItem('jdrList', JSON.stringify(saved));
+
+    form.reset();
+  });
+</script>
+</body>
+</html>
+
+
+<!--https://calendar.google.com/calendar/u/0?cid=Y2QwYjJhYWI4YTc4NDI1Njk3YmRjN2ZlY2VlMDVhYjhjZDE1NzI2Y2ZjMzQxMDcxMDY3ZDVlYjk5OWRhYzQ5NkBncm91cC5jYWxlbmRhci5nb29nbGUuY29t --!>
